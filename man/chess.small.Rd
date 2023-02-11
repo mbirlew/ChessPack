@@ -3,9 +3,9 @@
 \docType{data}
 \name{chess.small}
 \alias{chess.small}
-\title{Data set and reference Chess Game Dataset (Lichess)}
+\title{Data set and reference - Chess Game Dataset (Lichess)}
 \format{
-a data frame with 20019 observatioins
+a data frame with 20019 observations. Raw data games.csv contains 16 columns, cleaned data chess.small contains 7 columns:
 \describe{
  \item{id}{Assigned ID for players}
  \item{rated}{(T/F)rated and unrated games}

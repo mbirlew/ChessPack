@@ -1,9 +1,9 @@
-#' Data set and reference Chess Game Dataset (Lichess)
+#' Data set and reference - Chess Game Dataset (Lichess)
 #'
 #' This is a set of just over 20,000 games collected from a selection of users
 #'  on the site Lichess.org. This is a list of all columns in the raw data frame.
 #'
-#' @format a data frame with 20019 observatioins
+#' @format a data frame with 20019 observations. Raw data games.csv contains 16 columns, cleaned data chess.small contains 7 columns:
 #' \describe{
 #'  \item{id}{Assigned ID for players}
 #'  \item{rated}{(T/F)rated and unrated games}
