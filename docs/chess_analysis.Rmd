@@ -1,0 +1,17 @@
+---
+title: "Chess Analysis"
+author: "Mike Birlew"
+date: "2023-02-11"
+output: pdf_document
+---
+```{r}
+library(tidyverse)
+library(ChessCap)
+library(ggplot2)
+
+
+#create boxplots winner vs number of turns
+ggplot(chess.small, aes(x=winner, y=turns)) +
+  geom_boxplot(fill='steelblue') +
+  labs(title = 'Winner by Number of Turns')
+```
