@@ -4,14 +4,196 @@ author: "Mike Birlew"
 date: "2023-02-11"
 output: pdf_document
 ---
-```{r}
+```{r, echo=FALSE,message=FALSE}
 library(tidyverse)
-library(ChessCap)
+library(ChessPack)
 library(ggplot2)
+library(knitr)
+library(readr)
+library(cowplot)
+```
+
+```{r,echo=FALSE}
+# turn opening plays into factors
+chess.small<- chess.small %>%
+  mutate(opening_eco=factor(opening_eco))
+```
 
 
-#create boxplots winner vs number of turns
-ggplot(chess.small, aes(x=winner, y=turns)) +
+```{r,echo=FALSE}
+# wins vs opening moves
+opening.wins <- chess.small %>% count(opening_eco, winner, sort = TRUE)%>%
+  arrange(n)
+```
+
+
+
+```{r,echo=FALSE, include=FALSE}
+fig_1 <- ggplot(chess.small, aes(x=as.numeric(opening_eco))) +
+  geom_histogram(aes(fill =(color=winner)), binwidth = 1)+
+  labs(x ='Opening Move Numbered Index', y = 'Number of Wins',
+       title = 'Number of Wins Grouped by Opening Moves')+
+  facet_grid(cols = vars (winner))
+
+
+fig_1.1 <- ggplot(chess.small, aes(x=as.numeric(opening_eco))) +
+  geom_density(aes(fill =(color=winner)))+
+  labs(x ='Opening Move Numbered Index')+
+       #title = 'Number of Wins Grouped by Opening Moves')+
+  facet_grid(cols = vars (winner))
+```
+
+```{r,echo=FALSE, include=FALSE}
+#cowplot::plot_grid(fig_1,fig_1.1,
+ #                  ncol = 1)
+```
+**Figure 1.** The top graph shows a histogram of the number of wins per opening move set  
+   (indexed from 1 - 359). The bottom graph shows a better distribution with concentrated  
+   peaks highlighted across the interval and possibly suggesting white with a slight advantage  
+   in overall games.
+
+
+```{r, echo=FALSE,include=FALSE}
+ggplot(opening.wins, aes(x=winner, y=log(n))) +
   geom_boxplot(fill='steelblue') +
+  labs(title = 'Number of Wins by Opening Move', y = 'Number of Wins')
+```
+**Figure 2.** The box plot gives a better detail of the quantiles (the minimum here is 1) and median projection not seen in **Figure 1.**. We can see more clearly that, over all, White does have a slight advantage but a majority of the games throughout are held equally. One exception is the outlier 'Black'
+move set #1 (A00) Polish (Sokolsky) opening.
+
+**Note:** One thing that I find fascinating is the correlation to particular move sets
+that can give advantages to a player especially when playing as 'Black'. The dominate for black to win is move set #1 (A00) Polish (Sokolsky) opening. If I were to try and improve my game I would
+study the top three opening move sets associated with the spikes of wins for 'White' and 'Black'
+and use them accordingly.
+
+(Also while going through other graphs, I clearly see the constant advantage that 'White' has overall due to always moving first. But as we had discussed earlier in class, 'Black' actually does gain an overall advantage the longer the game progresses. These are very tiny gains but they show up consistently.)
+```{r, echo=FALSE}
+chess.sort <- chess.small %>%
+  mutate(sorted_eco = sort.int(opening_eco))
+```
+
+```{r}
+# create number of matches win by eco per color
+pivot_games <- pivot_wider(opening.wins, names_from = winner, values_from = n)
+
+# creates data frame for black wins drops na
+# adds total games and percent of moves to wins
+black_win <- select(pivot_games, opening_eco, black) %>% drop_na() %>%
+  mutate('total_games' = sum(black)) %>%
+  mutate('percent_move_win'= (black/total_games)*100)
+
+# categorize for black to win
+categorized_black <- cut(black_win$percent_move_win, breaks = c(0, .45,.9, 7),
+                         labels = c("small (>.45%)", "medium (.45-.9%)","large (1-7%)"))
+
+# create black category d.f.
+final_set_black <- data.frame(black_win, categorized_black)
+
+# plot black grouped wins
+fig_1.1 <- ggplot(final_set_black, aes(x = categorized_black,fill = categorized_black)) +
+  geom_bar() +
+  labs(title = 'Chance of Black Win by Grouped Moveset',x = "Chance of Win")+
+  geom_text(aes(label=..count..), stat = 'count',vjust=-.3)
+
+
+
+```
+
+```{r}
+
+# creates data frame for white wins drops na
+# adds total games and percent of moves to wins
+white_win <- select(pivot_games, opening_eco, white) %>% drop_na() %>%
+  mutate('total_games' = sum(white)) %>%
+  mutate('percent_move_win'= (white/total_games)*100)
+
+# categorize for white to win
+categorized_white <- cut(white_win$percent_move_win, breaks = c(0, .45,.9, 7),
+                         labels = c("small (>.45%)", "medium (.45-.9%)","large (1-7%)"))
+
+# create white category d.f.
+final_set_white <- data.frame(white_win, categorized_white)
+
+# plot white grouped wins
+fig_1.2 <- ggplot(final_set_white, aes(x = categorized_white,fill = categorized_white)) +
+  geom_bar() +
+  labs(title = 'Chance of White Win by Grouped Moveset',x = "Chance of Win")+
+  geom_text(aes(label=..count..), stat = 'count',vjust=-.3)
+```
+
+```{r}
+# combine white, black, plots
+cowplot::plot_grid(fig_1.1,fig_1.2,
+                   ncol = 1)
+```
+```{r}
+#summary_black <- c('opening_eco', 'black', 'percent_move_win')
+summary(final_set_black[c('black', 'percent_move_win')])
+```
+
+```{r}
+#summary_black <- c('opening_eco', 'black', 'percent_move_win')
+summary(final_set_white[c('white', 'percent_move_win')])
+```
+
+```{r}
+#create boxplots winner vs number of turns
+total <- chess.small %>% group_by(turns)
+
+ggplot(opening.wins, aes(x=winner,  y= n)) +
+  geom_col(fill='steelblue') +
   labs(title = 'Winner by Number of Turns')
 ```
+
+
+
+```{r}
+
+
+ggplot(opening.wins, aes(x = winner, y = n, fill = winner)) +
+  geom_bar(stat = "identity", position = position_dodge(), alpha = 0.75)  +
+  ylim(0,800) +
+  #geom_text(aes(label = n), fontface = "bold", vjust = 1.5,
+             #position = position_dodge(.9), size = 4) +
+  labs(x = "winner", y = "turns", title = "Winner by Number of Turns") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.title.x = element_text(face="bold", colour="red", size = 12),
+        axis.title.y = element_text(face="bold", colour="red", size = 12),
+        legend.title = element_text(face="bold", size = 10))
+```
+
+
+```{r}
+ggplot(total, aes(x = turns, y = winner, fill = winner)) +
+  geom_histogram(stat = 'identity')  +
+  ylim(0,600) +
+  #geom_text(aes(label = n), fontface = "bold", vjust = 1.5,
+             #position = position_dodge(.9), size = 4) +
+  #geom_text(aes(label= Freq),vjust=-.3) +
+  labs(x = "winner", y = "turns", title = "Winner by Number of Turns")
+```
+
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.title.x = element_text(face="bold", colour="red", size = 12),
+        axis.title.y = element_text(face="bold", colour="red", size = 12),
+        legend.title = element_text(face="bold", size = 10))
+```
+```{r}
+ggplot()
+```
+
+
+
+
+
+
+
+
+
+
+**Appendix**
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
+
+
+

@@ -4,11 +4,13 @@ library(tidyverse)
 chess <- read.csv('data-raw/games.csv')
 
 # remove unused columns
-chess.tidy <- chess%>% select(-id,-created_at,-last_move_at,-victory_status,-white_id,-black_id,
+chess.tidy <- chess%>% select(-id,-created_at,-last_move_at,-white_id,-black_id,
                               -white_rating,-black_rating,-moves,-opening_name)
 
 # created dummy variables (rated true=1, false=0)
-chess.data <- subset(chess.tidy, winner != 'draw')%>%
+chess.data <- subset(chess.tidy, victory_status != 'resign'&
+                       victory_status != 'draw' &
+                       victory_status != 'outoftime')%>%
   # (rated true=1, false=0)
   mutate(rated=ifelse(rated == 'TRUE',1,0))%>%
   # (winner white=1, black=0)
@@ -23,4 +25,4 @@ chess.data <- subset(chess.tidy, winner != 'draw')%>%
 chess.small <- chess.data%>%select(-set_time,-delay)
 
 # save data fram to data/ directory as chess.small
-usethis::use_data(chess.small)
+usethis::use_data(chess.small, overwrite = TRUE)
