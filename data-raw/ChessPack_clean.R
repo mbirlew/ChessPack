@@ -22,7 +22,7 @@ chess.data <- subset(chess.tidy, victory_status != 'resign'&
   # transform opening_eco to numeric data
   transform(opening_eco = as.numeric(as.factor(opening_eco)))
 
-chess.small <- chess.data%>%select(-set_time,-delay)
+chess.small <- chess.data%>%select(-set_time,-delay,-victory_status)
 
 # save data fram to data/ directory as chess.small
 usethis::use_data(chess.small, overwrite = TRUE)
