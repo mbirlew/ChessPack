@@ -5,7 +5,7 @@ chess <- read.csv('data-raw/games.csv')
 
 # remove unused columns
 chess.tidy <- chess%>% select(-id,-created_at,-last_move_at,-white_id,-black_id,
-                              -white_rating,-black_rating,-moves,-opening_name)
+                              -white_rating,-black_rating,-moves)
 
 # created dummy variables (rated true=1, false=0)
 chess.data <- subset(chess.tidy, victory_status != 'resign'&
