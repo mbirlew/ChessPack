@@ -14,11 +14,11 @@ library(cowplot)
 library(kableExtra)
 ```
 
-$$Introduction$$
+$$Introduction$$  
   Chess is a complex game of strategy with several factors involved that lead to a win. The raw data set comes from kaggle's website  https://www.kaggle.com/datasets/datasnaek/chess. This data set includes over 20000 games that were collected from an online chess simulator containing user data from Lichess.org. This project will begin to look into patterns that players may use to influence there chances of winning specifically move sets, known as opening moves, that have been defined as standard opening plays consisting of a specific set of moves.
   
 
-$$Data\>Cleaning$$
+$$Data\>Cleaning$$  
   To analyze the data for move strategy comparison, the raw data has been cleaned from sixteen columns to seven columns. The winner column has been filtered of all games that are not defined as a win leaving 6,325 total games. The standardized opening moves sets (opening_eco) has been factored to contain 272 different opening moves.
 
 ```{r, echo=FALSE}
@@ -54,9 +54,17 @@ opening.wins <- chess.small %>% count(opening_eco, winner, sort = TRUE)%>%
 
 \newpage
 
-\normalsize$$Data\>Analysis$$
+\normalsize$$Data\>Analysis$$  
+
   When looking for advantages in play fig.1 shows that 'white' wins more often than 'black'. In the game of chess 'white' always moves first. This is a well studied phenomenon in chess and the consensus that follows is called 'First-move advantage' https://en.wikipedia.org/wiki/First-move_advantage_in_chess
   It generally follows that with the first move 'black' is reacting to white as the game continues. Out of 6,325 games 'white' wins 3,344 of them. This 53% advantage is consistent with other studies that have been done on 'First-move Advantage'.
+
+
+
+
+\hfill\break
+
+
 
 
 ```{r, echo=FALSE}
@@ -79,7 +87,6 @@ ggplot(opening.wins, aes(x=winner,  y= n, fill = winner)) +
 pivot_games <- pivot_wider(opening.wins, names_from = winner, values_from = n)
 ```
 
-
 ```{r, echo=FALSE}
 # creates data frame for black wins drops na
 # adds total games and percent of moves to wins
@@ -87,7 +94,6 @@ black_win <- select(pivot_games, opening_eco, black) %>% drop_na() %>%
   mutate('total_games' = sum(black)) %>%
   mutate('percent_move_win'= (black/total_games)*100)
 ```
-
 
 ```{r, echo=FALSE}
 
@@ -98,7 +104,6 @@ white_win <- select(pivot_games, opening_eco, white) %>% drop_na() %>%
   mutate('percent_move_win'= (white/total_games)*100)
 ```
 
-
 ```{r, echo=FALSE}
 # create table for percent and game win camparison
 table_black <- summary(black_win[c('black', 'percent_move_win')])
@@ -107,7 +112,14 @@ table_white <-summary(white_win[c('white', 'percent_move_win')])
 ```
 
 \normalsize Outside of First-move advantage, are there any other factors that influence the game, especially any that 'black' can use to overcome 'white' always moving first and having First-move advantage?  Table 2 shows a summary of the total wins and percentage of wins per each move set. There are some interesting numbers that come out of this table for 'Black Wins'. 
-  For each move set, there is a set of moves that have a larger advantage of winning the game despite 'black' winning a slightly less percentage of the games overall. 'Black Wins' shows a larger median and mean when it comes to specific move sets winning games against 'white'. There is also a particular move set that, when used, can increase 'black' wins. This is seen at the 'Black Wins' Maximum value with a total of 291 wins at 9.4% against 'White Wins' Maximum win move of only 171 at 5.1% of wins. When normalized against all games played (6,325), the Maximum wins of the top two move sets is 'black' at 4.4% and 'white' at 2.7% for a 1.7% advantage over 'white' when both players are using the most winning move set.
+  For each move set, there is a set of moves that have a larger advantage of winning the game despite 'black' winning a slightly less percentage of the games overall. 'Black Wins' shows a larger median and mean when it comes to specific move sets winning games against 'white'. There is also a particular move set that, when used, can increase 'black' wins. This is seen at the 'Black Wins' Maximum value with a total of 281 wins at 9.4% against 'White Wins' Maximum win move of only 171 at 5.1% of wins. When normalized against all games played (6,325), the Maximum wins of the top two move sets is 'black' at 4.4% and 'white' at 2.7% for a 1.7% advantage over 'white' when both players are using the most winning move set.
+
+
+
+\hfill\break
+
+
+
 
 **Table 2. White/Black Win & Percent to Move Sets**
 ```{r, echo=FALSE}
@@ -130,19 +142,16 @@ categorized_black <- cut(black_win$percent_move_win, breaks = c(0, .45,.94, 9.5)
                          labels = c("small (<.45%)", "medium (.45-.9%)","large (>1%)"))
 ```
 
-
 ```{r, echo=FALSE}
 # categorize for white to win chance small, medium, large
 categorized_white <- cut(white_win$percent_move_win, breaks = c(0, .45,.94, 5.5),
                          labels = c("small (<.45%)", "medium (.45-.9%)","large (>1%)"))
 ```
 
-
 ```{r, echo=FALSE}
 # create black category d.f.
 final_set_black <- data.frame(black_win, categorized_black)
 ```
-
 
 ```{r, echo=FALSE}
 # create white category d.f.
@@ -162,7 +171,7 @@ fig_1.1 <- ggplot(final_set_black, aes(x = categorized_black,fill = categorized_
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-```{r, echo=FALSE, message=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # plot white grouped wins
 fig_1.2 <- ggplot(final_set_white, aes(x = categorized_white, fill = categorized_white)) +
   geom_bar() +
@@ -180,7 +189,15 @@ fig_1.2 <- ggplot(final_set_white, aes(x = categorized_white, fill = categorized
 \normalsize Using the information from Table 1., the data can further be categorized into the most successful move sets for winning based on the total wins of each color. Using the combined mean of both 'white' and 'black' the categories are separated into chances of win at Small (<.45%), Medium (.45 - .9%) and Large (>1%).
  Figure 1. Shows out of all the wins for a particular color, how many move sets have the highest chance of winning a match. 'White' shows a higher count for 'small' and 'large' chances of winning between move sets but interestingly 'black' has move sets that give a better medium advantage within the categories. If there is a possibility of overcoming the ~3% First-move advantage that 'white' has, it may lie in these opening moves.
 
-```{r, echo=FALSE}
+
+
+
+\hfill\break
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
 # combine white, black, plots
 plot_grid(fig_1.1,fig_1.2,nrow = 2)
 ```
@@ -209,7 +226,6 @@ most_win_black <- subset(final_set_black, percent_move_win > .95)
 med_win_black <- subset(final_set_black, percent_move_win > .45 & percent_move_win < .95)
 ```
 
-
 ```{r, echo=FALSE}
 # create plot for black top moves > .95%
 # refactor opening_eco for display continuity
@@ -224,7 +240,6 @@ fig_2.1 <- ggplot(most_win_black,aes(fct_rev(fct_reorder(opening_eco,
   # flip coordinates for clarity
   coord_flip()
 ```
-
 
 ```{r, echo=FALSE}
 # create plot for white top moves > .95%
@@ -245,6 +260,13 @@ fig_2.2 <- ggplot(most_win_white,aes(fct_rev(fct_reorder(opening_eco,
 
 \normalsize Exploring 'white' and 'black' win ratios further and looking into identifying all top move sets greater than 1% can show the top three winning moves. Figure 1. shows two moves in particular for 'black' that out performs the rest of the opening plays. Move 1 refers to A00 Polish (Sokolsky) opening which consists of over 9% of all wins by 'black' it is interesting to note that 'White also uses this move with a 4% win ratio. The second opening move set that has the highest win ratio is also 'black' with 138 representing C20 Kings pawn game at 5.5%. Kigs pawn is also used by 'white' at an ~ 3.8% win ration. 'White' has the third highest win ration with opening move 54 which is Owens Defense. This move is also used by 'black' in the top 1% of opening moves but is not as successful falling under a 2.4% win ratio.
 
+
+
+\hfill\break
+
+
+
+
 ```{r, echo=FALSE}
 # plot top moves white/black for comparison
 plot_grid(fig_2.1,fig_2.2,ncol = 2)
@@ -252,18 +274,27 @@ plot_grid(fig_2.1,fig_2.2,ncol = 2)
 ```
 \scriptsize(Fig.2) Shows the list of move sets in the order of top performers greater than 1% for 'black' and 'white'. Move set #1, A00 Polish (Sokolsky) opening is a clear opening to learn for black to battle 'white' First-move advantage.
 
-$$Conclusion$$
-\normalsize This is just a small look into certain advantages that a chess player can learn about when trying to better there playing strategies. To see such a stark difference in advantage between opening move sets could bring on much more understanding in how these opening moves could play against one another. One thing of interest is within the top three move sets there are also several variations that can be played to achieve the opening move, there is more than one way to Rome. It would be interesting to create subsections of these opening moves and then compare their efficiency against other opening move sets. The last figure also shows that many of the top move sets used are used by both 'black' and 'white' but with varying degrees of success. One thing is clear though and that is it would benefit any player to learn these top three moves and their variations to gain a substantial gain in their game play.
+\newpage
+
+\normalsize$$Conclusion$$  
+
+  This is just a small look into certain advantages that a chess player can learn about when trying to better there playing strategies. To see such a stark difference in advantage between opening move sets could bring on much more understanding in how these opening moves could play against one another. One thing of interest is within the top three move sets there are also several variations that can be played to achieve the opening move, there is more than one way to Rome. It would be interesting to create subsections of these opening moves and then compare their efficiency against other opening move sets. The last figure also shows that many of the top move sets used are used by both 'black' and 'white' but with varying degrees of success. One thing is clear though and that is it would benefit any player to learn these top three moves and their variations to gain a substantial gain in their game play.
+
+
+\hfill\break
 
 
 
+\hfill\break
 
 
 
 **Appendix**
 
-1. “365Chess.com” 2007-2023 https://www.365chess.com/eco.php. Accessed 23 February 2023
+1. “365Chess.com” 2007-2023 https://www.365chess.com/eco.php. Accessed 22 February 2023
 
-2. [Github code](https://github.com/dutchess3030/HeartDisease/blob/main/doc/HeartDiseaseAnalysis.Rmd)
+2. Wikipedia https://en.wikipedia.org/wiki/First-move_advantage_in_chess Accessed 20 February 2023
+
+3. [Github code]https://github.com/mbirlew/ChessPack/blob/main/docs/chess_analysis.Rmd
 
 
